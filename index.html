@@ -1,0 +1,755 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A simple educational water consumption calculator prototype for VR4STEM.">
+    <title>VR4STEM Water Consumption Calculator</title>
+    <style>
+        :root {
+            --primary: #075985;
+            --primary-dark: #0c4a6e;
+            --accent: #0d9488;
+            --accent-light: #ccfbf1;
+            --surface: #ffffff;
+            --background: #f0f9ff;
+            --text: #172033;
+            --muted: #526070;
+            --border: #cbd5e1;
+            --danger: #b42318;
+            --focus: #f59e0b;
+            --radius: 16px;
+            --shadow: 0 12px 30px rgba(12, 74, 110, 0.10);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-width: 320px;
+            color: var(--text);
+            background: radial-gradient(circle at top right, #ccfbf1 0, transparent 28rem), var(--background);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.5;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        a {
+            color: var(--primary);
+        }
+
+        :focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 3px;
+        }
+
+        .skip-link {
+            position: absolute;
+            left: 1rem;
+            top: -5rem;
+            z-index: 10;
+            padding: 0.7rem 1rem;
+            border-radius: 8px;
+            color: #fff;
+            background: var(--primary-dark);
+        }
+
+            .skip-link:focus {
+                top: 1rem;
+            }
+
+        .container {
+            width: min(1120px, calc(100% - 2rem));
+            margin-inline: auto;
+        }
+
+        header {
+            padding: 1.25rem 0;
+            color: #fff;
+            background: linear-gradient(120deg, var(--primary-dark), var(--primary));
+        }
+
+        .brand-row,
+        .logo-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand-row {
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .logo-placeholder {
+            display: grid;
+            min-width: 112px;
+            min-height: 48px;
+            padding: 0.5rem 0.75rem;
+            place-items: center;
+            border: 1px dashed rgba(255, 255, 255, 0.75);
+            border-radius: 10px;
+            font-size: 0.78rem;
+            text-align: center;
+        }
+
+        .hero {
+            padding: 2.5rem 0 1.25rem;
+        }
+
+            .hero h1 {
+                max-width: 780px;
+                margin: 0 0 0.7rem;
+                font-size: clamp(2rem, 5vw, 3.4rem);
+                line-height: 1.05;
+                letter-spacing: -0.035em;
+            }
+
+            .hero p {
+                max-width: 740px;
+                margin: 0;
+                color: #dbeafe;
+                font-size: 1.05rem;
+            }
+
+        main {
+            padding: 2rem 0 3rem;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        .card {
+            padding: clamp(1rem, 3vw, 1.5rem);
+            border: 1px solid #dbe7ef;
+            border-radius: var(--radius);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        h2,
+        h3 {
+            margin-top: 0;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 1.35rem;
+        }
+
+        .field {
+            margin-block: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.35rem;
+            font-weight: 700;
+        }
+
+        .hint {
+            display: block;
+            margin-top: 0.25rem;
+            color: var(--muted);
+            font-size: 0.84rem;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            min-height: 46px;
+            padding: 0.65rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            color: var(--text);
+            background: #fff;
+        }
+
+        input[aria-invalid="true"] {
+            border: 2px solid var(--danger);
+        }
+
+        .error-message {
+            min-height: 1.3em;
+            margin: 0.2rem 0 0;
+            color: var(--danger);
+            font-size: 0.84rem;
+            font-weight: 650;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1.25rem;
+        }
+
+        button {
+            min-height: 44px;
+            padding: 0.65rem 1rem;
+            border: 2px solid var(--primary);
+            border-radius: 9px;
+            color: var(--primary);
+            background: #fff;
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+            button:hover {
+                color: #fff;
+                background: var(--primary);
+            }
+
+        .status {
+            margin: 0 0 1rem;
+            padding: 0.75rem 0.9rem;
+            border-left: 4px solid var(--accent);
+            border-radius: 6px;
+            background: var(--accent-light);
+        }
+
+            .status.error {
+                border-color: var(--danger);
+                color: #7a271a;
+                background: #fef3f2;
+            }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+
+        .metric {
+            min-height: 128px;
+            padding: 1rem;
+            border: 1px solid #dbe7ef;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+            .metric.highlight {
+                border-color: #5eead4;
+                background: var(--accent-light);
+            }
+
+        .metric-label {
+            display: block;
+            color: var(--muted);
+            font-size: 0.88rem;
+            font-weight: 650;
+        }
+
+        .metric-value {
+            display: block;
+            margin-top: 0.35rem;
+            color: var(--primary-dark);
+            font-size: clamp(1.45rem, 4vw, 2rem);
+            font-weight: 850;
+            line-height: 1.15;
+        }
+
+        .metric-note {
+            display: block;
+            margin-top: 0.25rem;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .chart {
+            margin-top: 1.25rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 105px 1fr 86px;
+            gap: 0.65rem;
+            align-items: center;
+            margin: 0.75rem 0;
+        }
+
+        .bar-track {
+            height: 22px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #e2e8f0;
+        }
+
+        .bar {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--primary);
+            transition: width 180ms ease;
+        }
+
+            .bar.alternative {
+                background: var(--accent);
+            }
+
+        .chart-value {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            font-weight: 750;
+        }
+
+        .explanation {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
+            background: #eff6ff;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+        }
+
+        details {
+            padding: 1rem;
+            border: 1px solid #dbe7ef;
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        summary {
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+            color: #0c4a6e;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        .prototype-note {
+            margin-top: 1.25rem;
+            padding: 1rem;
+            border: 1px solid #f5c26b;
+            border-radius: 12px;
+            color: #633806;
+            background: #fff8e8;
+        }
+
+        footer {
+            padding: 1.5rem 0;
+            color: #dbeafe;
+            background: var(--primary-dark);
+        }
+
+            footer p {
+                margin: 0.35rem 0;
+            }
+
+        @media (max-width: 780px) {
+            .app-grid,
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                width: min(100% - 1rem, 1120px);
+            }
+
+            .logo-row {
+                width: 100%;
+            }
+
+            .logo-placeholder {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .chart-row {
+                grid-template-columns: 82px 1fr;
+            }
+
+            .chart-value {
+                grid-column: 2;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="skip-link" href="#calculator">Skip to calculator</a>
+
+    <header>
+        <div class="container">
+            <div class="brand-row">
+                <strong>VR4STEM Educational Prototype</strong>
+                <div class="logo-row" aria-label="Project logo placeholders">
+                    <div class="logo-placeholder" role="img" aria-label="VR4STEM logo placeholder">VR4STEM LOGO</div>
+                    <div class="logo-placeholder" role="img" aria-label="European Union logo placeholder">EU LOGO</div>
+                </div>
+            </div>
+            <div class="hero">
+                <h1>Water Consumption Calculator</h1>
+                <p>Explore how everyday shower and tap habits affect weekly and yearly water use—and see what changes when a shower is two minutes shorter.</p>
+            </div>
+        </div>
+    </header>
+
+    <main id="calculator" class="container" tabindex="-1">
+        <div class="app-grid">
+            <section class="card" aria-labelledby="inputs-title">
+                <h2 id="inputs-title">Your water-use habits</h2>
+                <p>Enter non-negative values. Results update as soon as you make a change.</p>
+
+                <form id="calculator-form" novalidate>
+                    <div class="field">
+                        <label for="shower-duration">Shower duration (minutes)</label>
+                        <input id="shower-duration" name="showerDuration" type="number" min="0" max="180" step="0.5" value="8" inputmode="decimal" aria-describedby="shower-duration-hint shower-duration-error">
+                        <small id="shower-duration-hint" class="hint">Length of one shower.</small>
+                        <p id="shower-duration-error" class="error-message" aria-live="polite"></p>
+                    </div>
+
+                    <div class="field">
+                        <label for="showers-week">Showers per week</label>
+                        <input id="showers-week" name="showersPerWeek" type="number" min="0" max="100" step="1" value="5" inputmode="numeric" aria-describedby="showers-week-hint showers-week-error">
+                        <small id="showers-week-hint" class="hint">How many showers are taken in a typical week.</small>
+                        <p id="showers-week-error" class="error-message" aria-live="polite"></p>
+                    </div>
+
+                    <div class="field">
+                        <label for="tap-minutes">Daily tap use (minutes)</label>
+                        <input id="tap-minutes" name="tapMinutesDaily" type="number" min="0" max="1440" step="0.5" value="5" inputmode="decimal" aria-describedby="tap-minutes-hint tap-minutes-error">
+                        <small id="tap-minutes-hint" class="hint">Total time the tap runs each day.</small>
+                        <p id="tap-minutes-error" class="error-message" aria-live="polite"></p>
+                    </div>
+
+                    <div class="field">
+                        <label for="shower-flow">Shower flow rate (litres/minute)</label>
+                        <input id="shower-flow" name="showerFlow" type="number" min="0" max="100" step="0.1" value="9" inputmode="decimal" aria-describedby="shower-flow-hint shower-flow-error">
+                        <small id="shower-flow-hint" class="hint">Prototype default: 9 L/min.</small>
+                        <p id="shower-flow-error" class="error-message" aria-live="polite"></p>
+                    </div>
+
+                    <div class="field">
+                        <label for="tap-flow">Tap flow rate (litres/minute)</label>
+                        <input id="tap-flow" name="tapFlow" type="number" min="0" max="100" step="0.1" value="6" inputmode="decimal" aria-describedby="tap-flow-hint tap-flow-error">
+                        <small id="tap-flow-hint" class="hint">Prototype default: 6 L/min.</small>
+                        <p id="tap-flow-error" class="error-message" aria-live="polite"></p>
+                    </div>
+
+                    <div class="button-row">
+                        <button type="reset">Reset</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card" aria-labelledby="results-title">
+                <h2 id="results-title">Results</h2>
+                <p id="result-status" class="status" role="status" aria-live="polite">Results calculated from the current values.</p>
+
+                <div class="results-grid" aria-label="Calculated water consumption">
+                    <div class="metric">
+                        <span class="metric-label">Shower use per week</span>
+                        <strong id="shower-weekly" class="metric-value">360 L</strong>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Tap use per week</span>
+                        <strong id="tap-weekly" class="metric-value">210 L</strong>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total per week</span>
+                        <strong id="total-weekly" class="metric-value">570 L</strong>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Estimated per year</span>
+                        <strong id="total-yearly" class="metric-value">29,640 L</strong>
+                        <small class="metric-note">Based on 52 weeks.</small>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Alternative weekly total</span>
+                        <strong id="alternative-total" class="metric-value">480 L</strong>
+                        <small id="alternative-note" class="metric-note">With a 6-minute shower.</small>
+                    </div>
+                    <div class="metric highlight">
+                        <span class="metric-label">Water saved per week</span>
+                        <strong id="savings" class="metric-value">90 L</strong>
+                        <small id="savings-percent" class="metric-note">15.8% of the original total.</small>
+                    </div>
+                </div>
+
+                <div class="chart" role="img" aria-labelledby="chart-title" aria-describedby="chart-description">
+                    <h3 id="chart-title">Weekly total comparison</h3>
+                    <p id="chart-description" class="hint">Bars compare the original weekly total with the shorter-shower scenario.</p>
+                    <div class="chart-row">
+                        <span>Original</span>
+                        <div class="bar-track"><div id="original-bar" class="bar"></div></div>
+                        <span id="original-chart-value" class="chart-value">570 L</span>
+                    </div>
+                    <div class="chart-row">
+                        <span>Alternative</span>
+                        <div class="bar-track"><div id="alternative-bar" class="bar alternative"></div></div>
+                        <span id="alternative-chart-value" class="chart-value">480 L</span>
+                    </div>
+                </div>
+
+                <div id="student-explanation" class="explanation">
+                    <strong>What does this mean?</strong>
+                    <p>Your shower uses more water per week than your tap in this example. Cutting each shower by two minutes would save 90 litres per week.</p>
+                </div>
+            </section>
+        </div>
+
+        <div class="details-grid">
+            <details>
+                <summary>Assumptions</summary>
+                <ul>
+                    <li>One week has 7 days.</li>
+                    <li>One year is estimated as 52 weeks.</li>
+                    <li>Flow rates stay constant while the shower or tap is running.</li>
+                    <li>The alternative changes only shower duration, reducing it by up to 2 minutes without going below zero.</li>
+                    <li>Only shower and tap use are included—not toilets, washing machines, leaks, cooking or outdoor use.</li>
+                </ul>
+            </details>
+
+            <details>
+                <summary>Formulas</summary>
+                <ul>
+                    <li><code>weekly shower = shower minutes × showers/week × shower L/min</code></li>
+                    <li><code>weekly tap = daily tap minutes × 7 × tap L/min</code></li>
+                    <li><code>weekly total = weekly shower + weekly tap</code></li>
+                    <li><code>yearly estimate = weekly total × 52</code></li>
+                    <li><code>alternative duration = max(shower minutes − 2, 0)</code></li>
+                    <li><code>saved litres = original weekly total − alternative weekly total</code></li>
+                    <li><code>saved percentage = saved litres ÷ original weekly total × 100</code></li>
+                </ul>
+            </details>
+        </div>
+
+        <aside class="prototype-note" aria-label="Important prototype note">
+            <strong>Prototype note:</strong> Numerical assumptions and default flow rates are illustrative only. They must be validated by a subject expert before this tool is used as educational project material.
+        </aside>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p><strong>Funding disclaimer placeholder</strong></p>
+            <p>Insert the approved VR4STEM / European Union funding acknowledgement and legal disclaimer here.</p>
+        </div>
+    </footer>
+
+    <script>
+    "use strict";
+
+    const DEFAULTS = {
+      showerDuration: 8,
+      showersPerWeek: 5,
+      tapMinutesDaily: 5,
+      showerFlow: 9,
+      tapFlow: 6
+    };
+
+    const fieldConfig = [
+      { id: "shower-duration", key: "showerDuration", label: "Shower duration", max: 180 },
+      { id: "showers-week", key: "showersPerWeek", label: "Showers per week", max: 100 },
+      { id: "tap-minutes", key: "tapMinutesDaily", label: "Daily tap use", max: 1440 },
+      { id: "shower-flow", key: "showerFlow", label: "Shower flow rate", max: 100 },
+      { id: "tap-flow", key: "tapFlow", label: "Tap flow rate", max: 100 }
+    ];
+
+    const form = document.getElementById("calculator-form");
+    const status = document.getElementById("result-status");
+    const numberFormatter = new Intl.NumberFormat("en-GB", {
+      maximumFractionDigits: 1
+    });
+
+    const output = {
+      showerWeekly: document.getElementById("shower-weekly"),
+      tapWeekly: document.getElementById("tap-weekly"),
+      totalWeekly: document.getElementById("total-weekly"),
+      totalYearly: document.getElementById("total-yearly"),
+      alternativeTotal: document.getElementById("alternative-total"),
+      alternativeNote: document.getElementById("alternative-note"),
+      savings: document.getElementById("savings"),
+      savingsPercent: document.getElementById("savings-percent"),
+      originalBar: document.getElementById("original-bar"),
+      alternativeBar: document.getElementById("alternative-bar"),
+      originalChartValue: document.getElementById("original-chart-value"),
+      alternativeChartValue: document.getElementById("alternative-chart-value"),
+      explanation: document.getElementById("student-explanation")
+    };
+
+    function formatLitres(value) {
+      return `${numberFormatter.format(value)} L`;
+    }
+
+    function readAndValidate() {
+      const values = {};
+      let isValid = true;
+
+      fieldConfig.forEach((field) => {
+        const input = document.getElementById(field.id);
+        const error = document.getElementById(`${field.id}-error`);
+        const raw = input.value.trim();
+        const value = Number(raw);
+        let message = "";
+
+        if (raw === "") {
+          message = `${field.label} is required.`;
+        } else if (!Number.isFinite(value)) {
+          message = `Enter a valid number for ${field.label.toLowerCase()}.`;
+        } else if (value < 0) {
+          message = `${field.label} cannot be negative.`;
+        } else if (value > field.max) {
+          message = `${field.label} must be ${field.max} or less.`;
+        }
+
+        input.setAttribute("aria-invalid", message ? "true" : "false");
+        error.textContent = message;
+
+        if (message) {
+          isValid = false;
+        } else {
+          values[field.key] = value;
+        }
+      });
+
+      return { isValid, values };
+    }
+
+    function calculate(values) {
+      const showerWeekly =
+        values.showerDuration * values.showersPerWeek * values.showerFlow;
+      const tapWeekly =
+        values.tapMinutesDaily * 7 * values.tapFlow;
+      const totalWeekly = showerWeekly + tapWeekly;
+      const totalYearly = totalWeekly * 52;
+
+      const alternativeDuration = Math.max(values.showerDuration - 2, 0);
+      const alternativeShowerWeekly =
+        alternativeDuration * values.showersPerWeek * values.showerFlow;
+      const alternativeTotal = alternativeShowerWeekly + tapWeekly;
+      const savedLitres = totalWeekly - alternativeTotal;
+      const savedPercent = totalWeekly > 0
+        ? (savedLitres / totalWeekly) * 100
+        : 0;
+
+      return {
+        showerWeekly,
+        tapWeekly,
+        totalWeekly,
+        totalYearly,
+        alternativeDuration,
+        alternativeTotal,
+        savedLitres,
+        savedPercent
+      };
+    }
+
+    function clearResults() {
+      [
+        output.showerWeekly,
+        output.tapWeekly,
+        output.totalWeekly,
+        output.totalYearly,
+        output.alternativeTotal,
+        output.savings,
+        output.originalChartValue,
+        output.alternativeChartValue
+      ].forEach((element) => {
+        element.textContent = "—";
+      });
+
+      output.alternativeNote.textContent = "Correct the inputs to calculate.";
+      output.savingsPercent.textContent = "Correct the inputs to calculate.";
+      output.originalBar.style.width = "0%";
+      output.alternativeBar.style.width = "0%";
+      output.explanation.innerHTML =
+        "<strong>What does this mean?</strong><p>Please correct the highlighted input fields to see an explanation.</p>";
+    }
+
+    function render() {
+      const { isValid, values } = readAndValidate();
+
+      if (!isValid) {
+        status.textContent = "Some values need attention. Results are paused.";
+        status.classList.add("error");
+        clearResults();
+        return;
+      }
+
+      const result = calculate(values);
+      const maxValue = Math.max(result.totalWeekly, 1);
+      const originalWidth = result.totalWeekly > 0
+        ? (result.totalWeekly / maxValue) * 100
+        : 0;
+      const alternativeWidth = result.alternativeTotal > 0
+        ? (result.alternativeTotal / maxValue) * 100
+        : 0;
+      const mainSource = result.showerWeekly > result.tapWeekly
+        ? "shower"
+        : result.tapWeekly > result.showerWeekly
+          ? "tap"
+          : "shower and tap equally";
+
+      status.textContent = "Results calculated from the current values.";
+      status.classList.remove("error");
+      output.showerWeekly.textContent = formatLitres(result.showerWeekly);
+      output.tapWeekly.textContent = formatLitres(result.tapWeekly);
+      output.totalWeekly.textContent = formatLitres(result.totalWeekly);
+      output.totalYearly.textContent = formatLitres(result.totalYearly);
+      output.alternativeTotal.textContent = formatLitres(result.alternativeTotal);
+      output.alternativeNote.textContent =
+        `With a ${numberFormatter.format(result.alternativeDuration)}-minute shower.`;
+      output.savings.textContent = formatLitres(result.savedLitres);
+      output.savingsPercent.textContent =
+        `${numberFormatter.format(result.savedPercent)}% of the original total.`;
+      output.originalBar.style.width = `${originalWidth}%`;
+      output.alternativeBar.style.width = `${alternativeWidth}%`;
+      output.originalChartValue.textContent = formatLitres(result.totalWeekly);
+      output.alternativeChartValue.textContent = formatLitres(result.alternativeTotal);
+      output.explanation.innerHTML =
+        `<strong>What does this mean?</strong>
+         <p>Your ${mainSource} is the larger source of water use in this model.
+         Cutting each shower by up to two minutes would save
+         <strong>${formatLitres(result.savedLitres)}</strong> per week,
+         or <strong>${numberFormatter.format(result.savedPercent)}%</strong>
+         of the original shower-and-tap total.</p>`;
+    }
+
+    form.addEventListener("input", render);
+    form.addEventListener("change", render);
+    form.addEventListener("reset", () => {
+      window.setTimeout(() => {
+        fieldConfig.forEach((field) => {
+          document.getElementById(field.id).value = DEFAULTS[field.key];
+        });
+        render();
+      }, 0);
+    });
+
+    render();
+    </script>
+</body>
+</html>
